@@ -29,7 +29,10 @@ def get_apoz(model, layer, x_val, node_indices=None):
     Returns:
         List of the APoZ values for each channel in the layer.
     """
-
+    print('\033[93m' + "Type"+'\033[0m')
+    print(type(x_val))
+    if hasattr(x_val, "__iter__"):
+        print('\033[93m' + "Has attribute iter"+'\033[0m')
     if isinstance(layer, str):
         layer = model.get_layer(name=layer)
 
@@ -59,8 +62,9 @@ def get_apoz(model, layer, x_val, node_indices=None):
         if hasattr(x_val, "__iter__"):
             temp_model = Model(model.inputs,
                                act_layer.get_output_at(act_index))
-            a = temp_model.predict_generator(
-                x_val, x_val.n // x_val.batch_size)
+            # a = temp_model.predict_generator(x_val, x_val.n // x_val.batch_size)
+            temp_x = x_val.reshape((1,1,4))
+            a = temp_model.predict_generator(iter(temp_x), temp_x.shape[1])
         else:
             get_activations = k.function(
                 [utils.single_element(model.inputs), k.learning_phase()],
@@ -103,3 +107,4 @@ def high_apoz(apoz, method="std", cutoff_std=1, cutoff_absolute=0.99):
         cutoff = min([cutoff_absolute, apoz.mean() + apoz.std()*cutoff_std])
 
     return np.where(apoz >= cutoff)[0]
+
